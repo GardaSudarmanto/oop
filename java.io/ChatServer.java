@@ -1,23 +1,28 @@
+package chat;
+
 import java.io.*;
 import java.net.*;
 import java.util.*;
 
 public class ChatServer {
-    private static Set<PrintWriter> clientWriters = new HashSet<>();
+    private static Set<PrintWriter> clientWriters = Collections.synchronizedSet(new HashSet<>());
 
     public static void main(String[] args) throws Exception {
         System.out.println("Chat server started...");
         ServerSocket serverSocket = new ServerSocket(12345);
-
-        while (true) {
-            new ClientHandler(serverSocket.accept()).start();
+        try {
+            while (true) {
+                new ClientHandler(serverSocket.accept()).start();
+            }
+        } finally {
+            serverSocket.close();
         }
     }
 
     private static class ClientHandler extends Thread {
         private Socket socket;
-        private PrintWriter out;
         private BufferedReader in;
+        private PrintWriter out;
 
         public ClientHandler(Socket socket) {
             this.socket = socket;
